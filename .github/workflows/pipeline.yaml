@@ -21,8 +21,8 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Run tests
-        run: npm test -- --watchAll=false
+      - name: 🔍 Run tests
+        run: npm run test --run
 
   deploy:
     runs-on: ubuntu-latest
