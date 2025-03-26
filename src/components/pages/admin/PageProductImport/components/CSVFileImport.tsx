@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 
@@ -8,47 +9,78 @@ type CSVFileImportProps = {
 };
 
 export default function CSVFileImport({ url, title }: CSVFileImportProps) {
-  const [file, setFile] = React.useState<File>();
+  const [file, setFile] = useState<File | null>(null);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      const file = files[0];
-      setFile(file);
+      setFile(files[0]);
     }
   };
 
   const removeFile = () => {
-    setFile(undefined);
+    setFile(null);
   };
 
   const uploadFile = async () => {
-    console.log("uploadFile to", url);
+    if (!file) {
+      console.error("No file selected!");
+      return;
+    }
 
-    // Get the presigned URL
-    // const response = await axios({
-    //   method: "GET",
-    //   url,
-    //   params: {
-    //     name: encodeURIComponent(file.name),
-    //   },
-    // });
-    // console.log("File to upload: ", file.name);
-    // console.log("Uploading to: ", response.data);
-    // const result = await fetch(response.data, {
-    //   method: "PUT",
-    //   body: file,
-    // });
-    // console.log("Result: ", result);
-    // setFile("");
+    try {
+      console.log("Getting Pre-Signed URL...");
+
+      // Gọi API để lấy Pre-Signed URL
+      const response = await axios.get(url, {
+        params: { name: encodeURIComponent(file.name) },
+      });
+
+      const presignedUrl = response.data; // URL upload S3
+      console.log("Pre-Signed URL received:", presignedUrl);
+
+      console.log("Uploading file to S3...");
+      const uploadResponse = await fetch(presignedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (uploadResponse.ok) {
+        console.log("✅ Upload thành công!");
+        alert("Upload thành công!");
+      } else {
+        console.error("❌ Upload thất bại!", uploadResponse);
+        alert("Upload thất bại!");
+      }
+    } catch (error: any) {
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          console.error("⛔ Error 401 - Unauthorized! Token is missing or invalid.");
+          alert("⛔ Error 401 - Unauthorized! Token is missing or invalid.");
+        } else if (error.response?.status === 403) {
+          console.error("🚫 Error 403 - Forbidden! You do not have permission.");
+          alert("🚫 Error 403 - Forbidden! You do not have permission.");
+        } else {
+          console.error("Lỗi khi upload file:", error.message);
+          alert(`Error 401 - Unauthorized! Token is missing or invalid.`);
+        }
+      } else {
+        console.error("Lỗi khi upload file:", error);
+        alert("Error 401 - Unauthorized! Token is missing or invalid.");
+      }
+    }
   };
+
   return (
     <Box>
       <Typography variant="h6" gutterBottom>
         {title}
       </Typography>
       {!file ? (
-        <input type="file" onChange={onFileChange} />
+        <input type="file" accept=".csv" onChange={onFileChange} />
       ) : (
         <div>
           <button onClick={removeFile}>Remove file</button>
