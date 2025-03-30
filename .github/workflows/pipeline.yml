@@ -19,9 +19,11 @@ jobs:
           java-version: '17'
 
       - name: Test Project
+        working-directory: backend
         run: mvn clean test
 
       - name: Build Project
+        working-directory: backend
         run: mvn clean package
 
   deploy:
@@ -43,6 +45,6 @@ jobs:
 
       - name: Test CDK
         run: cdk synth
-        
+
       - name: Deploy to Lambda
         run: cdk deploy
