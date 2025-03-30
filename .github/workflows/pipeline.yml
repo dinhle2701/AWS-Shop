@@ -6,7 +6,7 @@ on:
       - feat/task-3
 
 jobs:
-  package:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -29,6 +29,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Setup SDK 17
+        uses: actions/setup-java@v3
+        with: 
+          distribution: 'temurin'
+          java-version: '17'
+
       - name: Install CDK
         run: npm install -g aws-cdk
 
@@ -49,4 +55,4 @@ jobs:
 
       - name: Deploy to Lambda
         working-directory: backend
-        run: cdk deploy
+        run: cdk deploy --require-approval never
