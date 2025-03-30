@@ -24,7 +24,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: package
+    needs: test
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
