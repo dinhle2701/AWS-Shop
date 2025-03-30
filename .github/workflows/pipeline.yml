@@ -44,7 +44,9 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Test CDK
+        working-directory: backend
         run: cdk synth
 
       - name: Deploy to Lambda
+        working-directory: backend
         run: cdk deploy
